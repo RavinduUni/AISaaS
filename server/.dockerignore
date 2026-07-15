@@ -1,0 +1,29 @@
+# Dependencies — reinstalled inside the image
+node_modules
+
+# Environment files — injected at runtime via Docker secrets or --env-file
+.env
+.env.*
+
+# Git
+.git
+.gitignore
+
+# Docker files themselves
+Dockerfile
+.dockerignore
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+
+# Editor configs
+.vscode
+.idea
+*.suo
+*.user
