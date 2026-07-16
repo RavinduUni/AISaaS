@@ -25,7 +25,7 @@ jobs:
             - name: Setup Node.js
               uses: actions/setup-node@v4
               with:
-                  node-version: '20'
+                  node-version: '24'
                   cache: 'npm'
                   cache-dependency-path: server/package-lock.json
 
@@ -33,13 +33,10 @@ jobs:
               working-directory: server
               run: npm ci --frozen-lockfile
 
-            # ── Lint: syntax-check every JS file (no ESLint needed) ──────────
-            - name: Lint – Node.js syntax check
+            # ── Lint: run ESLint ─────────────────────────────────────────────
+            - name: Run ESLint
               working-directory: server
-              run: |
-                  echo "Running syntax check on all JS files..."
-                  find . -name "*.js" ! -path "./node_modules/*" \
-                    -exec node --check {} \; && echo "All files passed syntax check."
+              run: npm run lint
 
             # ── Test ─────────────────────────────────────────────────────────
             - name: Run Tests
