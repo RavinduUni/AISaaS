@@ -11,7 +11,7 @@ const pdf = require("pdf-parse");
 export const generateArticle = async (req, res) => {
     try {
 
-        const { id, emailAddresses } = req.user;
+        const { id } = req.user;
         const { prompt, length } = req.body;
 
         console.log(prompt, length);
