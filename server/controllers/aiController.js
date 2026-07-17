@@ -7,6 +7,7 @@ import fs from "fs";
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
 const pdf = require("pdf-parse");
+import { Buffer } from "buffer";
 
 export const generateArticle = async (req, res) => {
     try {
