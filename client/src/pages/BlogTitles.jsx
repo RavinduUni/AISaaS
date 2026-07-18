@@ -1,7 +1,15 @@
-import { Edit, Hash, Sparkles } from 'lucide-react';
+import { Edit, Hash, Loader2, Sparkles } from 'lucide-react';
 import React, { useState } from 'react'
+import axios from 'axios';
+import { useAuth } from '@clerk/react';
+import toast from 'react-hot-toast';
+import Markdown from 'react-markdown';
+
+axios.defaults.baseURL = import.meta.env.VITE_BASE_URL;
 
 const BlogTitles = () => {
+
+  const { getToken } = useAuth();
 
     const blogCategories = [
       'General', 'Technology','Business', 'Health', 'Lifestyle', 'Education', 'Travel', 'Food'
@@ -9,11 +17,46 @@ const BlogTitles = () => {
   
     const [selectedCategory, setSelectedCategory] = useState('General');
     const [input, setInput] = useState('');
+
+    const [content, setContent] = useState('');
+    const [loading, setLoading] = useState(false);
   
     const onSubmitHandler = async (e) => {
       e.preventDefault();
+      setLoading(true);
   
-  
+      try {
+
+        const prompt = `Generate 5 engaging and creative blog titles based on the following keyword:
+
+        Keyword: "${input}"
+        Category: ${selectedCategory}
+        
+        The titles should be:
+        - Catchy and attention-grabbing
+        - Relevant to the keyword and category
+        - Optimized for SEO
+        - Varied in style (questions, statements, listicles, etc.)
+        - Suitable for a blog audience
+        
+        Return only the blog titles, one per line, format as a markdown list.
+        
+        Generate the 5 blog titles now:`
+
+        const { data } = await axios.post('/api/ai/generate-blog-title', {
+          prompt
+        }, { headers: { Authorization: `Bearer ${await getToken()}` } });
+
+        if (data.success) {
+          setContent(data.content);
+          toast.success(data.message);
+        }
+
+      } catch (error) {
+        toast.error(error.response.data.message);
+      } finally {
+        setLoading(false);
+      }
     }
 
   return (
@@ -39,8 +82,9 @@ const BlogTitles = () => {
           ))}
         </div>
         <br />
-        <button className='w-full flex justify-center items-center gap-2 bg-linear-to-r from-[#8E37EB] to-[#C77DFF] text-white px-4 py-2 mt-6 text-sm rounded-lg cursor-pointer'>
-          <Hash className='w-5' />Generate Title
+        <button disabled={loading} className='w-full flex justify-center items-center gap-2 bg-linear-to-r from-[#8E37EB] to-[#C77DFF] text-white px-4 py-2 mt-6 text-sm rounded-lg cursor-pointer disabled:opacity-50'>
+          {loading ? <Loader2 className='w-4 h-4 animate-spin' /> : <Hash className='w-4 h-4' />}
+          Generate Title
         </button>
       </form>
 
@@ -51,13 +95,20 @@ const BlogTitles = () => {
           <p className='text-xl font-semibold'>Generated Titles</p>
         </div>
 
-        <div className='flex-1 flex justify-center items-center h-full '>
+        {!content ? (
+          <div className='flex-1 flex justify-center items-center h-full '>
           <div className='text-sm flex flex-col items-center gap-5 text-gray-400'>
             <Hash className='w-9 h-9' />
             <p>Enter a topic and click "Generate title" to get started</p>
           </div>
         </div>
-
+        ) : (
+          <div className='mt-3 h-full overflow-y-scroll text-sm text-slate-600'>
+            <div className='reset-tw'>
+              <Markdown>{content}</Markdown>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
