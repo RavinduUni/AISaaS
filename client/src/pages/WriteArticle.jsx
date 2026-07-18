@@ -29,7 +29,7 @@ const WriteArticle = () => {
   const [loading, setLoading] = useState(false);
   const [content, setContent] = useState('');
 
-  const {getToken} = useAuth();
+  const { getToken } = useAuth();
 
   const onSubmitHandler = async (e) => {
     e.preventDefault();

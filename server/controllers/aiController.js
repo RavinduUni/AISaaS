@@ -82,12 +82,12 @@ export const generateBlogTitle = async (req, res) => {
         }
 
         const response = await openai.chat.completions.create({
-            model: "gemini-2.5-flash",
+            model: "gemini-3.5-flash",
             messages: [
                 { role: "user", content: prompt }
             ],
             temperature: 0.7,
-            max_completion_tokens: 100
+            max_completion_tokens: 2000
         });
 
         const content = response.choices[0].message.content;

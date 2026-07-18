@@ -1,20 +1,20 @@
 import React, { useEffect, useState } from 'react'
-import { dummyCreationData } from '../assets/assets';
-import { Gem, Sparkles } from 'lucide-react';
-import { Show } from '@clerk/react';
+import { Gem, Loader, Sparkles } from 'lucide-react';
+import { Show, useAuth } from '@clerk/react';
 import CreationItem from '../components/CreationItem';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchCreations } from '../slices/aiSlice';
 
 const Dashboard = () => {
 
-  const [creations, setCreations] = useState([]);
+  const dispatch = useDispatch();
+  const { getToken } = useAuth();
 
-  const getDashboardData = async () => {
-    setCreations(dummyCreationData);
-  }
+  const { creations, loading, error } = useSelector((state) => state.creations);
 
   useEffect(() => {
-    getDashboardData();
-  }, [])
+    dispatch(fetchCreations(getToken));
+  }, [dispatch, getToken])
 
   return (
     <div className='h-full overflow-y-scroll p-6'>
@@ -45,7 +45,12 @@ const Dashboard = () => {
 
       <div className='space-y-3'>
         <p className='mt-6 mb-4'>Recent Creations</p>
-        {creations.map((item) => (
+        {loading ? <div className='flex justify-center py-20'>
+          <div className='flex flex-col items-center gap-2 text-gray-400'>
+            <Loader className='w-6 h-6 animate-spin' />
+            <p>Loading creations...</p>
+          </div>
+        </div> : creations.map((item) => (
           <CreationItem key={item.id} item={item} />
         ))}
       </div>
