@@ -1,12 +1,18 @@
 import { Edit, Sparkles } from 'lucide-react'
 import React, { useState } from 'react'
+import axios from 'axios';
+import { useAuth } from '@clerk/react';
+import toast from 'react-hot-toast';
+import Markdown from 'react-markdown';
+
+axios.defaults.baseURL = import.meta.env.VITE_BASE_URL;
 
 const WriteArticle = () => {
 
   const articleLength = [
     {
-      length: 800,
-      text: 'Short (500-800) words'
+      length: 500,
+      text: 'Short (500) words'
     },
     {
       length: 1200,
@@ -20,10 +26,43 @@ const WriteArticle = () => {
 
   const [selectedLength, setSelectedLength] = useState(articleLength[0]);
   const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [content, setContent] = useState('');
+
+  const {getToken} = useAuth();
 
   const onSubmitHandler = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
+    try {
+
+      const prompt = `Write a comprehensive and engaging article on the topic of "${input}".
+The article should be approximately ${selectedLength.text} words long and should include:
+
+1. An engaging introduction that captures the reader's attention.
+2. In-depth coverage of the topic with relevant details and insights.
+3. Proper structure with clear paragraphs and logical flow.
+4. A compelling conclusion that summarizes the key points.
+The tone should be [insert desired tone, e.g., formal, conversational, technical, etc.] and the language should be [insert desired language].
+
+Generate the complete article below:
+`
+
+      const { data } = await axios.post('/api/ai/generate-article', {
+        prompt
+      }, { headers: { Authorization: `Bearer ${await getToken()}` } });
+
+      if (data.success) {
+        setContent(data.content);
+        toast.success(data.message);
+      }
+
+    } catch (error) {
+      toast.error(error.response.data.message);
+    } finally {
+      setLoading(false);
+    }
 
   }
 
@@ -50,8 +89,8 @@ const WriteArticle = () => {
           ))}
         </div>
         <br />
-        <button className='w-full flex justify-center items-center gap-2 bg-linear-to-r from-[#226BFF] to-[#65ADFF] text-white px-4 py-2 mt-6 text-sm rounded-lg cursor-pointer'>
-          <Edit className='w-5' />Generate Article
+        <button disabled={loading} type='submit' className='disabled:opacity-40 w-full flex justify-center items-center gap-2 bg-linear-to-r from-[#226BFF] to-[#65ADFF] text-white px-4 py-2 mt-6 text-sm rounded-lg cursor-pointer'>
+          <Edit className='w-5' />{loading ? 'Generating Article...' : 'Generate Article'}
         </button>
       </form>
 
@@ -62,13 +101,20 @@ const WriteArticle = () => {
           <p className='text-xl font-semibold'>Generated article</p>
         </div>
 
-        <div className='flex-1 flex justify-center items-center h-full '>
-          <div className='text-sm flex flex-col items-center gap-5 text-gray-400'>
-            <Edit className='w-9 h-9'/>
-            <p>Enter a topic and click "Generate article" to get started</p>
+        {!content ? (
+          <div className='flex-1 flex justify-center items-center h-full '>
+            <div className='text-sm flex flex-col items-center gap-5 text-gray-400'>
+              <Edit className='w-9 h-9' />
+              <p>Enter a topic and click "Generate article" to get started</p>
+            </div>
           </div>
-        </div>
-
+        ) : (
+          <div className='mt-3 h-full overflow-y-scroll text-sm text-slate-600'>
+            <div className='reset-tw'>
+              <Markdown>{content}</Markdown>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
